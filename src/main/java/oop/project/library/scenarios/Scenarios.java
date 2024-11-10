@@ -1,5 +1,12 @@
 package oop.project.library.scenarios;
 
+import oop.project.library.command.Command;
+import oop.project.library.lexer.Lexer;
+import oop.project.library.parser.Parser;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Scenarios {
@@ -29,7 +36,8 @@ public class Scenarios {
     private static Result<Map<String, Object>> lex(String arguments) {
         //Note: For ease of testing, this should use your Lexer implementation
         //directly rather and return those values.
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var lexMap = Lexer.parse("lex", arguments);
+        return lexMap != null ? new Result.Success<>(lexMap) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> add(String arguments) {
@@ -40,11 +48,13 @@ public class Scenarios {
         //var left = IntegerParser.parse(args.positional[0]);
         //This is fine - our goal right now is to implement this functionality
         //so we can build up the actual command system in Part 3.
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("add", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> sub(String arguments) {
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("sub", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> fizzbuzz(String arguments) {
@@ -54,23 +64,28 @@ public class Scenarios {
         //the validation involved even if it's not in the library yet.
         //var number = IntegerParser.parse(lexedArguments.get("number"));
         //if (number < 1 || number > 100) ...
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("fizzbuzz", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> difficulty(String arguments) {
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("difficulty", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> echo(String arguments) {
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("echo", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> search(String arguments) {
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("search", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> weekday(String arguments) {
-        throw new UnsupportedOperationException("TODO"); //TODO
+        var obj = Command.execute("weekday", arguments);
+        return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
 }
