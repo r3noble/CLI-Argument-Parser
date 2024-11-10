@@ -157,18 +157,21 @@ public final class Lexer {
         return lexMap;
     }
 
+    //TODO
     private static Map<String, Object> parseEcho(String arguments) {
         Map<String, Object> lexMap = new HashMap<>();
 
         return lexMap;
     }
 
+    //TODO
     private static Map<String, Object> parseSearch(String arguments) {
         Map<String, Object> lexMap = new HashMap<>();
 
         return lexMap;
     }
 
+    // TODO
     private static Map<String, Object> parseWeekday(String arguments) {
         Map<String, Object> lexMap = new HashMap<>();
 

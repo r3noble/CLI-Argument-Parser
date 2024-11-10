@@ -73,16 +73,19 @@ public class Scenarios {
         return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
+    //TODO
     private static Result<Map<String, Object>> echo(String arguments) {
         var obj = Command.execute("echo", arguments);
         return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
+    //TODO
     private static Result<Map<String, Object>> search(String arguments) {
         var obj = Command.execute("search", arguments);
         return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
+    //TODO
     private static Result<Map<String, Object>> weekday(String arguments) {
         var obj = Command.execute("weekday", arguments);
         return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
