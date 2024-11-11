@@ -1,23 +1,31 @@
 package oop.project.library.parser;
 
-public final class Parser {
-    // Public methods
-    public static Object parse(String input) {
-        // Test for Boolean
-        if (input.equals("true") || input.equals("false"))
-            return Boolean.parseBoolean(input);
+public class Parser {
 
-        // Test for Integer
+    public static Boolean parseBoolean(String input) {
+        if ("true".equalsIgnoreCase(input) || "false".equalsIgnoreCase(input)) {
+            return Boolean.parseBoolean(input);
+        }
+        throw new IllegalArgumentException("Invalid boolean value: " + input);
+    }
+
+    public static Integer parseInt(String input) {
         try {
             return Integer.parseInt(input);
-        } catch (NumberFormatException ignored) { }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid integer value: " + input);
+        }
+    }
 
-        // Test for Double
+    public static Double parseDouble(String input) {
         try {
             return Double.parseDouble(input);
-        } catch (NumberFormatException ignored) { }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid double value: " + input);
+        }
+    }
 
-        // Not a Boolean, Integer, or a Double so treat as String
+    public static String parseString(String input) {
         return input;
     }
 }

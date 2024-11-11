@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Scenarios {
 
@@ -68,12 +69,18 @@ public class Scenarios {
         if (obj.getPositionalArgs().size() != 2)
             return new Result.Failure<>("Not enough arguments");
 
-        Object leftObj = Parser.parse(obj.getPositionalArgs().get(0));
-        Object rightObj = Parser.parse(obj.getPositionalArgs().get(1));
-
-        if (!(leftObj instanceof Integer left) || !(rightObj instanceof Integer right)) {
+        Object left, right;
+        try {
+            left = Parser.parseInt(obj.getPositionalArgs().get(0));
+            right = Parser.parseInt(obj.getPositionalArgs().get(1));
+        } catch (Exception e) {
             return new Result.Failure<>("One of the arguments is not an integer");
         }
+
+
+//        if (!(leftObj instanceof Integer left) || !(rightObj instanceof Integer right)) {
+//            return new Result.Failure<>("One of the arguments is not an integer");
+//        }
 
         Map<String, Object> result = new HashMap<>();
 
@@ -103,12 +110,18 @@ public class Scenarios {
             }
 
             if (i + 1 < tokens.length) {
-                Object obj = Parser.parse(tokens[++i]);
-                if (obj instanceof Integer value) {
-                    result.put(flag, value.doubleValue());
-                } else if (obj instanceof Double value) {
-                    result.put(flag, value);
+                Object obj;
+                try {
+                    obj = Parser.parseDouble(tokens[++i]);
+                } catch (Exception e) {
+                    return new Result.Failure<>("One of the arguments cannot be cast to a double.");
                 }
+                result.put(flag, obj);
+//                if (obj instanceof Integer value) {
+//                    result.put(flag, value.doubleValue());
+//                } else if (obj instanceof Double value) {
+//                    result.put(flag, value);
+//                }
             } else {
                 return new Result.Failure<>("TODO");
             }
@@ -138,7 +151,12 @@ public class Scenarios {
             return new Result.Failure<>("Not enough arguments");
         }
 
-        Object object = Parser.parse(positionalArgs.getFirst());
+        Object object;
+        try {
+            object = Parser.parseInt(positionalArgs.getFirst());
+        } catch (Exception e) {
+            return new Result.Failure<>("Argument is not an integer");
+        }
 
         if (!(object instanceof Integer number)) {
             return new Result.Failure<>("Argument is not an integer");
@@ -162,7 +180,12 @@ public class Scenarios {
             return new Result.Failure<>("Not enough arguments");
         }
 
-        var object = Parser.parse(positionalArgs.getFirst());
+        Object object;
+        try {
+            object = Parser.parseString(positionalArgs.getFirst());
+        } catch (Exception e) {
+            return new Result.Failure<>("Argument cannot be used as a string");
+        }
 
         Map<String, Object> result = new HashMap<>();
 
@@ -188,30 +211,43 @@ public class Scenarios {
             return new Result.Success<>(result);
         }
 
-        var message = Parser.parse(positionalArgs.getFirst());
+        Object message;
+        try {
+            message = Parser.parseString(positionalArgs.getFirst());
+        } catch (Exception e) {
+            return new Result.Failure<>("Argument cannot be used as a string");
+        }
 
         result.put("message", message);
 
         return new Result.Success<>(result);
     }
-    
+
     private static Result<Map<String, Object>> search(String arguments) {
+        // Ensure Command.execute() does not return null
         var obj = Command.execute(arguments);
+        if (obj == null) {
+            return new Result.Failure<>("No flag value was provided for case-insensitive");
+        }
 
         var positionalArgs = obj.getPositionalArgs();
-        if (positionalArgs.isEmpty())
+        if (positionalArgs.isEmpty()) {
             return new Result.Failure<>("Missing arguments");
-        if (positionalArgs.size() > 1) {
-            return new Result.Failure<>("Too many arguments");
         }
+        if (positionalArgs.size() > 1) {
+            return new Result.Failure<>("Too many positional arguments");
+        }
+
+        // Initialize result map
         Map<String, Object> result = new HashMap<>();
-        var term = Parser.parse(positionalArgs.getFirst());
+        var term = Parser.parseString(positionalArgs.getFirst());
         result.put("term", term);
 
+        // Handle named arguments
         var namedArgs = obj.getNamedArgs();
         if (namedArgs.isEmpty()) {
             result.put("case-insensitive", false);
-            return new Result.Success<>(result);
+            return new Result.Success<>(result); // If no named args, return with default case-insensitive
         }
 
         if (namedArgs.size() > 1) {
@@ -219,19 +255,26 @@ public class Scenarios {
         }
 
         if (namedArgs.containsKey("case-insensitive")) {
-            var flag = Parser.parse(namedArgs.get("case-insensitive"));
-            result.put("case-insensitive", flag);
+            // Check for "case-insensitive" flag and set accordingly
+            String caseInsensitive = Parser.parseString(namedArgs.get("case-insensitive"));
+            if ("true".equalsIgnoreCase(caseInsensitive)) {
+                result.put("case-insensitive", true);
+            } else {
+                result.put("case-insensitive", false);
+            }
         }
 
+        // Return the result map in a Success object
         return new Result.Success<>(result);
     }
+
 
     private static Result<Map<String, Object>> weekday(String arguments) {
         var obj = Command.execute(arguments);
 
         var positionalArgs = obj.getPositionalArgs();
 
-        var date = Parser.parse(positionalArgs.getFirst());
+        Object date = Parser.parseString(positionalArgs.getFirst());
 
         try {
             LocalDate localDate = LocalDate.parse(date.toString());
