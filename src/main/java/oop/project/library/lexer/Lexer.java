@@ -25,8 +25,6 @@ public final class Lexer {
 
         String[] tokens = arguments.split(" ");
 
-        var positionalIndex = 0;
-
         for (int i = 0; i < tokens.length; i++) {
             if (tokens[i].startsWith("---")) {
                 throw new AssertionError("Undefined command " + tokens[i]);
@@ -45,7 +43,7 @@ public final class Lexer {
                     } else {
                         this.positionalArgs.add(tokens[i].substring(1));
                     }
-                else {
+                else if (!tokens[i].isEmpty()) {
                     this.positionalArgs.add(tokens[i]);
                 }
             }

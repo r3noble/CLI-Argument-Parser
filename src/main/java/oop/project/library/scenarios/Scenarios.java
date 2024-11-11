@@ -4,6 +4,8 @@ import oop.project.library.command.Command;
 import oop.project.library.lexer.Lexer;
 import oop.project.library.parser.Parser;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -174,25 +176,71 @@ public class Scenarios {
         return new Result.Success<>(result);
     }
 
-    //TODO
     private static Result<Map<String, Object>> echo(String arguments) {
-        //var obj = Command.execute("echo", arguments);
-        return null;
-        //return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
-    }
+        var obj = Command.execute(arguments);
 
-    //TODO
+        var positionalArgs = obj.getPositionalArgs();
+
+        Map<String, Object> result = new HashMap<>();
+
+        if (positionalArgs.isEmpty()) {
+            result.put("message", "Echo, echo, echo!");
+            return new Result.Success<>(result);
+        }
+
+        var message = Parser.parse(positionalArgs.getFirst());
+
+        result.put("message", message);
+
+        return new Result.Success<>(result);
+    }
+    
     private static Result<Map<String, Object>> search(String arguments) {
-        //var obj = Command.execute("search", arguments);
-        return null;
-        //return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
+        var obj = Command.execute(arguments);
+
+        var positionalArgs = obj.getPositionalArgs();
+        if (positionalArgs.isEmpty())
+            return new Result.Failure<>("Missing arguments");
+        if (positionalArgs.size() > 1) {
+            return new Result.Failure<>("Too many arguments");
+        }
+        Map<String, Object> result = new HashMap<>();
+        var term = Parser.parse(positionalArgs.getFirst());
+        result.put("term", term);
+
+        var namedArgs = obj.getNamedArgs();
+        if (namedArgs.isEmpty()) {
+            result.put("case-insensitive", false);
+            return new Result.Success<>(result);
+        }
+
+        if (namedArgs.size() > 1) {
+            return new Result.Failure<>("Too many named arguments");
+        }
+
+        if (namedArgs.containsKey("case-insensitive")) {
+            var flag = Parser.parse(namedArgs.get("case-insensitive"));
+            result.put("case-insensitive", flag);
+        }
+
+        return new Result.Success<>(result);
     }
 
-    //TODO
     private static Result<Map<String, Object>> weekday(String arguments) {
-        //var obj = Command.execute("weekday", arguments);
-        return null;
-        //return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
+        var obj = Command.execute(arguments);
+
+        var positionalArgs = obj.getPositionalArgs();
+
+        var date = Parser.parse(positionalArgs.getFirst());
+
+        try {
+            LocalDate localDate = LocalDate.parse(date.toString());
+            Map<String, Object> result = new HashMap<>();
+            result.put("date", localDate);
+            return new Result.Success<>(result);
+        } catch (DateTimeParseException e) {
+            return new Result.Failure<>("Invalid date format");
+        }
     }
 
 }
