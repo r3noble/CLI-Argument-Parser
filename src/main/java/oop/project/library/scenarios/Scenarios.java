@@ -36,22 +36,19 @@ public class Scenarios {
     private static Result<Map<String, Object>> lex(String arguments) {
         Lexer.Data lexerData;
         try {
-            lexerData = Lexer.parse(arguments);  // Lexer parses arguments into positional and named data
+            lexerData = Lexer.parse(arguments);
         } catch (ParseException e) {
             return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
 
-        // Create a map to hold the parsed arguments
         Map<String, Object> result = new HashMap<>();
 
-        // Process Positional Arguments
         List<String> positionalArgs = lexerData.positional();
         for (int i = 0; i < positionalArgs.size(); i++) {
             String arg = positionalArgs.get(i);
-            result.put(String.valueOf(i), arg);  // You can modify the key as needed
+            result.put(String.valueOf(i), arg);
         }
 
-        // Process Named Arguments
         Map<String, String> namedArgs = lexerData.named();
         for (Map.Entry<String, String> entry : namedArgs.entrySet()) {
             String flag = entry.getKey();
@@ -59,7 +56,6 @@ public class Scenarios {
             result.put(flag, value);
         }
 
-        // Return the result as a successful outcome
         return new Result.Success<>(result);
     }
 
@@ -76,7 +72,8 @@ public class Scenarios {
                 List.of(
                         new Argument("left", new IntegerParser(), false),
                         new Argument("right", new IntegerParser(), false)
-                )
+                ),
+                Map.of()
         );
 
         Map<String, Object> parsedArguments;
@@ -99,9 +96,10 @@ public class Scenarios {
     private static Result<Map<String, Object>> sub(String arguments) {
         var sub = new Command(
                 "sub",
-                List.of(
-                        new Argument("left", new DoubleParser(), false),
-                        new Argument("right", new DoubleParser(), false)
+                List.of(),
+                Map.of(
+                        "left", new Argument("left", new DoubleParser(), false),
+                        "right", new Argument("right", new DoubleParser(), false)
                 )
         );
 
@@ -133,7 +131,8 @@ public class Scenarios {
                 "fizzbuzz",
                 List.of(
                         new Argument("number", new IntegerParser(), false, value -> (int) value >= 1 && (int) value <= 100)
-                )
+                ),
+                Map.of()
         );
 
         Map<String, Object> parsedArguments;
@@ -156,7 +155,8 @@ public class Scenarios {
                 "difficulty",
                 List.of(
                         new Argument("difficulty", new StringParser(), false, value -> value.equals("easy") || value.equals("normal") || value.equals("medium") || value.equals("hard"))
-                )
+                ),
+                Map.of()
         );
 
         Map<String, Object> parsedArguments;
@@ -179,7 +179,8 @@ public class Scenarios {
                 "echo",
                 List.of(
                         new Argument("message", new StringParser(), true, List.of(), () -> "Echo, echo, echo!" )
-                )
+                ),
+                Map.of()
         );
 
         Map<String, Object> parsedArguments;
@@ -201,8 +202,10 @@ public class Scenarios {
         Command search = new Command(
                 "search",
                 List.of(
-                        new Argument("term", new StringParser(), false),
-                        new Argument("case-insensitive", new BooleanParser(), true, List.of(), () -> false)
+                        new Argument("term", new StringParser(), false)
+                ),
+                Map.of(
+                        "case-insensitive", new Argument("case-insensitive", new BooleanParser(), true, List.of(), () -> false)
                 )
         );
 
@@ -229,7 +232,8 @@ public class Scenarios {
                 "weekday",
                 List.of(
                         new Argument("date", new LocalDateParser())
-                )
+                ),
+                Map.of()
         );
 
         Map<String, Object> parsedArguments;
