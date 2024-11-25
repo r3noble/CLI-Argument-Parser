@@ -1,14 +1,13 @@
 package oop.project.library.scenarios;
 
 import oop.project.library.command.Command;
+import oop.project.library.command.Argument;
 import oop.project.library.lexer.Lexer;
-import oop.project.library.parser.Parser;
+import oop.project.library.parser.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Scenarios {
 
@@ -35,23 +34,32 @@ public class Scenarios {
     }
 
     private static Result<Map<String, Object>> lex(String arguments) {
-        //Note: For ease of testing, this should use your Lexer implementation
-        //directly rather and return those values.
-        var obj = Command.execute(arguments);
-
-        Map<String, Object> result = new HashMap<>();
-
+        Lexer.Data lexerData;
         try {
-            var positionalArgs = obj.getPositionalArgs();
-            for (int i = 0; i < positionalArgs.size(); i++) {
-                result.put(String.valueOf(i), positionalArgs.get(i));
-            }
-            var namedArgs = obj.getNamedArgs();
-            result.putAll(namedArgs);
-        } catch (NullPointerException e) {
-            return new Result.Failure<>("Null pointer exception thrown in positionalArgs");
+            lexerData = Lexer.parse(arguments);  // Lexer parses arguments into positional and named data
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
 
+        // Create a map to hold the parsed arguments
+        Map<String, Object> result = new HashMap<>();
+
+        // Process Positional Arguments
+        List<String> positionalArgs = lexerData.positional();
+        for (int i = 0; i < positionalArgs.size(); i++) {
+            String arg = positionalArgs.get(i);
+            result.put(String.valueOf(i), arg);  // You can modify the key as needed
+        }
+
+        // Process Named Arguments
+        Map<String, String> namedArgs = lexerData.named();
+        for (Map.Entry<String, String> entry : namedArgs.entrySet()) {
+            String flag = entry.getKey();
+            String value = entry.getValue();
+            result.put(flag, value);
+        }
+
+        // Return the result as a successful outcome
         return new Result.Success<>(result);
     }
 
@@ -63,27 +71,25 @@ public class Scenarios {
         //var left = IntegerParser.parse(args.positional[0]);
         //This is fine - our goal right now is to implement this functionality
         //so we can build up the actual command system in Part 3.
+        var add = new Command(
+                "add",
+                List.of(
+                        new Argument("left", new IntegerParser(), false),
+                        new Argument("right", new IntegerParser(), false)
+                )
+        );
 
-        var obj = Command.execute(arguments);
-
-        if (obj.getPositionalArgs().size() != 2)
-            return new Result.Failure<>("Not enough arguments");
-
-        Object left, right;
+        Map<String, Object> parsedArguments;
         try {
-            left = Parser.parseInt(obj.getPositionalArgs().get(0));
-            right = Parser.parseInt(obj.getPositionalArgs().get(1));
-        } catch (Exception e) {
-            return new Result.Failure<>("One of the arguments is not an integer");
+            parsedArguments = add.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
 
-
-//        if (!(leftObj instanceof Integer left) || !(rightObj instanceof Integer right)) {
-//            return new Result.Failure<>("One of the arguments is not an integer");
-//        }
+        var left = parsedArguments.get("left");
+        var right = parsedArguments.get("right");
 
         Map<String, Object> result = new HashMap<>();
-
         result.put("left", left);
         result.put("right", right);
 
@@ -91,49 +97,29 @@ public class Scenarios {
     }
 
     private static Result<Map<String, Object>> sub(String arguments) {
-        String[] tokens = arguments.split(" ");
-        if (tokens.length != 4) {
-            return new Result.Failure<>("Not enough arguments");
+        var sub = new Command(
+                "sub",
+                List.of(
+                        new Argument("left", new DoubleParser(), false),
+                        new Argument("right", new DoubleParser(), false)
+                )
+        );
+
+        Map<String, Object> parsedArguments;
+        try {
+            parsedArguments = sub.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
+
+        var left = parsedArguments.get("left");
+        var right = parsedArguments.get("right");
 
         Map<String, Object> result = new HashMap<>();
+        result.put("left", left);
+        result.put("right", right);
 
-        for (int i = 0; i < tokens.length; i++) {
-            String flag = "";
-
-            switch (tokens[i]) {
-                case "--left" -> flag = "left";
-                case "--right" -> flag = "right";
-                default -> {
-                    return new Result.Failure<>("Undefined flag " + flag + ".");
-                }
-            }
-
-            if (i + 1 < tokens.length) {
-                Object obj;
-                try {
-                    obj = Parser.parseDouble(tokens[++i]);
-                } catch (Exception e) {
-                    return new Result.Failure<>("One of the arguments cannot be cast to a double.");
-                }
-                result.put(flag, obj);
-//                if (obj instanceof Integer value) {
-//                    result.put(flag, value.doubleValue());
-//                } else if (obj instanceof Double value) {
-//                    result.put(flag, value);
-//                }
-            } else {
-                return new Result.Failure<>("TODO");
-            }
-        }
-
-        if (!result.containsKey("left") || !result.containsKey("right")) {
-            return new Result.Failure<>("Missing one or more values");
-        }
-
-        //var obj = Command.execute("sub", arguments);
         return new Result.Success<>(result);
-        //return obj != null ? new Result.Success<>(obj) : new Result.Failure<>("");
     }
 
     private static Result<Map<String, Object>> fizzbuzz(String arguments) {
@@ -143,80 +129,68 @@ public class Scenarios {
         //the validation involved even if it's not in the library yet.
         //var number = IntegerParser.parse(lexedArguments.get("number"));
         //if (number < 1 || number > 100) ...
-        var obj = Command.execute(arguments);
+        var fizzbuzz = new Command(
+                "fizzbuzz",
+                List.of(
+                        new Argument("number", new IntegerParser(), false, value -> (int) value >= 1 && (int) value <= 100)
+                )
+        );
 
-        var positionalArgs = obj.getPositionalArgs();
-
-        if (positionalArgs.size() != 1) {
-            return new Result.Failure<>("Not enough arguments");
-        }
-
-        Object object;
+        Map<String, Object> parsedArguments;
         try {
-            object = Parser.parseInt(positionalArgs.getFirst());
-        } catch (Exception e) {
-            return new Result.Failure<>("Argument is not an integer");
+            parsedArguments = fizzbuzz.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
 
-        if (!(object instanceof Integer number)) {
-            return new Result.Failure<>("Argument is not an integer");
-        }
+        var left = parsedArguments.get("number");
 
         Map<String, Object> result = new HashMap<>();
+        result.put("number", left);
 
-        if (number >= 1 && number <= 100) {
-            result.put("number", number);
-            return new Result.Success<>(result);
-        } else
-            return new Result.Failure<>("Number out of range");
+        return new Result.Success<>(result);
     }
 
     private static Result<Map<String, Object>> difficulty(String arguments) {
-        var obj = Command.execute(arguments);
+        Command difficulty = new Command(
+                "difficulty",
+                List.of(
+                        new Argument("difficulty", new StringParser(), false, value -> value.equals("easy") || value.equals("normal") || value.equals("medium") || value.equals("hard"))
+                )
+        );
 
-        var positionalArgs = obj.getPositionalArgs();
-
-        if (positionalArgs.size() != 1) {
-            return new Result.Failure<>("Not enough arguments");
-        }
-
-        Object object;
+        Map<String, Object> parsedArguments;
         try {
-            object = Parser.parseString(positionalArgs.getFirst());
-        } catch (Exception e) {
-            return new Result.Failure<>("Argument cannot be used as a string");
+            parsedArguments = difficulty.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
+
+        var diff = parsedArguments.get("difficulty");
 
         Map<String, Object> result = new HashMap<>();
+        result.put("difficulty", diff);
 
-        if (object instanceof String difficulty) {
-            if (difficulty.equals("easy") || difficulty.equals("normal")
-                    || difficulty.equals("medium") || difficulty.equals("hard")) {
-                result.put("difficulty", difficulty);
-            } else
-                return new Result.Failure<>("Unknown difficulty");
-        }
         return new Result.Success<>(result);
     }
 
     private static Result<Map<String, Object>> echo(String arguments) {
-        var obj = Command.execute(arguments);
+        Command echo = new Command(
+                "echo",
+                List.of(
+                        new Argument("message", new StringParser(), true, List.of(), () -> "Echo, echo, echo!" )
+                )
+        );
 
-        var positionalArgs = obj.getPositionalArgs();
-
-        Map<String, Object> result = new HashMap<>();
-
-        if (positionalArgs.isEmpty()) {
-            result.put("message", "Echo, echo, echo!");
-            return new Result.Success<>(result);
-        }
-
-        Object message;
+        Map<String, Object> parsedArguments;
         try {
-            message = Parser.parseString(positionalArgs.getFirst());
-        } catch (Exception e) {
-            return new Result.Failure<>("Argument cannot be used as a string");
+            parsedArguments = echo.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
+
+        var message = parsedArguments.get("message");
+        Map<String, Object> result = new HashMap<>();
 
         result.put("message", message);
 
@@ -224,66 +198,53 @@ public class Scenarios {
     }
 
     private static Result<Map<String, Object>> search(String arguments) {
-        // Ensure Command.execute() does not return null
-        var obj = Command.execute(arguments);
-        if (obj == null) {
-            return new Result.Failure<>("No flag value was provided for case-insensitive");
+        Command search = new Command(
+                "search",
+                List.of(
+                        new Argument("term", new StringParser(), false),
+                        new Argument("case-insensitive", new BooleanParser(), true, List.of(), () -> false)
+                )
+        );
+
+        Map<String, Object> parsedArguments;
+        try {
+            parsedArguments = search.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
 
-        var positionalArgs = obj.getPositionalArgs();
-        if (positionalArgs.isEmpty()) {
-            return new Result.Failure<>("Missing arguments");
-        }
-        if (positionalArgs.size() > 1) {
-            return new Result.Failure<>("Too many positional arguments");
-        }
+        var term = parsedArguments.get("term");
+        var flag = parsedArguments.get("case-insensitive");
 
-        // Initialize result map
         Map<String, Object> result = new HashMap<>();
-        var term = Parser.parseString(positionalArgs.getFirst());
+
         result.put("term", term);
+        result.put("case-insensitive", flag);
 
-        // Handle named arguments
-        var namedArgs = obj.getNamedArgs();
-        if (namedArgs.isEmpty()) {
-            result.put("case-insensitive", false);
-            return new Result.Success<>(result); // If no named args, return with default case-insensitive
-        }
-
-        if (namedArgs.size() > 1) {
-            return new Result.Failure<>("Too many named arguments");
-        }
-
-        if (namedArgs.containsKey("case-insensitive")) {
-            // Check for "case-insensitive" flag and set accordingly
-            String caseInsensitive = Parser.parseString(namedArgs.get("case-insensitive"));
-            if ("true".equalsIgnoreCase(caseInsensitive)) {
-                result.put("case-insensitive", true);
-            } else {
-                result.put("case-insensitive", false);
-            }
-        }
-
-        // Return the result map in a Success object
         return new Result.Success<>(result);
     }
 
-
     private static Result<Map<String, Object>> weekday(String arguments) {
-        var obj = Command.execute(arguments);
+        Command weekday = new Command(
+                "weekday",
+                List.of(
+                        new Argument("date", new LocalDateParser())
+                )
+        );
 
-        var positionalArgs = obj.getPositionalArgs();
-
-        Object date = Parser.parseString(positionalArgs.getFirst());
-
+        Map<String, Object> parsedArguments;
         try {
-            LocalDate localDate = LocalDate.parse(date.toString());
-            Map<String, Object> result = new HashMap<>();
-            result.put("date", localDate);
-            return new Result.Success<>(result);
-        } catch (DateTimeParseException e) {
-            return new Result.Failure<>("Invalid date format");
+            parsedArguments = weekday.parse(arguments);
+        } catch (ParseException e) {
+            return new Result.Failure<>("Error parsing arguments: " + e.getMessage());
         }
+
+        var date = parsedArguments.get("date");
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("date", date);
+
+        return new Result.Success<>(result);
     }
 
 }

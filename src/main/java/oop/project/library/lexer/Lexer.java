@@ -1,62 +1,50 @@
 package oop.project.library.lexer;
 
-import oop.project.library.parser.Parser;
+import oop.project.library.parser.ParseException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-public final class Lexer {
+public class Lexer {
 
-    // Private fields
-    private final List<String> positionalArgs;
-    private final Map<String, String> namedArgs;
-
-    public Lexer() {
-        this.positionalArgs = new ArrayList<>();
-        this.namedArgs = new HashMap<>();
-    }
+    public record Data(
+        List<String> positional,
+        Map<String, String> named
+    ) {}
 
     // Public methods
-    public Lexer parse(String arguments) {
-        this.positionalArgs.clear();
-        this.namedArgs.clear();
+    public static Data parse(String arguments) throws ParseException {
+        List<String> tempPositional = new ArrayList<>();
+        Map<String, String> tempNamed = new HashMap<>();
 
         String[] tokens = arguments.split(" ");
 
         for (int i = 0; i < tokens.length; i++) {
             if (tokens[i].startsWith("---")) {
-                throw new AssertionError("Undefined command " + tokens[i]);
+                throw new ParseException("Undefined command " + tokens[i]);
             } else if (tokens[i].startsWith("--")) {
                 String flag = tokens[i].substring(2);
                 if (i + 1 < tokens.length && !tokens[i + 1].startsWith("--")) {
                     String value = tokens[++i];
-                    this.namedArgs.put(flag, value);
+                    tempNamed.put(flag, value);
                 } else {
-                    return null;
+                    throw new ParseException("Flag " + flag + " is missing a value.");
                 }
             } else {
                 if (tokens[i].startsWith("-") && isDouble(tokens[i]))
                     if (isNegative(tokens[i])) {
-                        this.positionalArgs.add(tokens[i]);
+                        tempPositional.add(tokens[i]);
                     } else {
-                        this.positionalArgs.add(tokens[i].substring(1));
+                        tempPositional.add(tokens[i].substring(1));
                     }
                 else if (!tokens[i].isEmpty()) {
-                    this.positionalArgs.add(tokens[i]);
+                    tempPositional.add(tokens[i]);
                 }
             }
         }
-        return this;
-    }
-
-    public List<String> getPositionalArgs() {
-        return this.positionalArgs;
-    }
-
-    public Map<String, String> getNamedArgs() {
-        return this.namedArgs;
+        return new Data(tempPositional, tempNamed);
     }
 
     // Private helpers
