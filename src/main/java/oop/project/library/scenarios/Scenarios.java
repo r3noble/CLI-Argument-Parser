@@ -11,6 +11,11 @@ import java.util.*;
 
 public class Scenarios {
 
+    static {
+        // Register LocalDateParser in the ParserRegistry
+        ParserRegistry.registerParser(LocalDate.class, new LocalDateParser());
+    }
+
     public static Result<Map<String, Object>> parse(String command) {
         //Note: Unlike argparse4j, our library will contain a lexer than can
         //support an arbitrary String (instead of requiring a String[] array).
@@ -70,8 +75,8 @@ public class Scenarios {
         var add = new Command(
                 "add",
                 List.of(
-                        new Argument("left", new IntegerParser(), false),
-                        new Argument("right", new IntegerParser(), false)
+                        new Argument("left", ParserRegistry.getParser(Integer.class), false),
+                        new Argument("right", ParserRegistry.getParser(Integer.class), false)
                 ),
                 Map.of()
         );
@@ -98,8 +103,8 @@ public class Scenarios {
                 "sub",
                 List.of(),
                 Map.of(
-                        "left", new Argument("left", new DoubleParser(), false),
-                        "right", new Argument("right", new DoubleParser(), false)
+                        "left", new Argument("left", ParserRegistry.getParser(Double.class), false),
+                        "right", new Argument("right", ParserRegistry.getParser(Double.class), false)
                 )
         );
 
@@ -130,7 +135,7 @@ public class Scenarios {
         var fizzbuzz = new Command(
                 "fizzbuzz",
                 List.of(
-                        new Argument("number", new IntegerParser(), false, value -> (int) value >= 1 && (int) value <= 100)
+                        new Argument("number", ParserRegistry.getParser(Integer.class), false, value -> (int) value >= 1 && (int) value <= 100)
                 ),
                 Map.of()
         );
@@ -154,7 +159,7 @@ public class Scenarios {
         Command difficulty = new Command(
                 "difficulty",
                 List.of(
-                        new Argument("difficulty", new StringParser(), false, value -> value.equals("easy") || value.equals("normal") || value.equals("medium") || value.equals("hard"))
+                        new Argument("difficulty", ParserRegistry.getParser(String.class), false, value -> value.equals("easy") || value.equals("normal") || value.equals("medium") || value.equals("hard"))
                 ),
                 Map.of()
         );
@@ -178,7 +183,7 @@ public class Scenarios {
         Command echo = new Command(
                 "echo",
                 List.of(
-                        new Argument("message", new StringParser(), true, List.of(), () -> "Echo, echo, echo!" )
+                        new Argument("message", ParserRegistry.getParser(String.class), true, List.of(), () -> "Echo, echo, echo!" )
                 ),
                 Map.of()
         );
@@ -202,7 +207,7 @@ public class Scenarios {
         Command search = new Command(
                 "search",
                 List.of(
-                        new Argument("term", new StringParser(), false)
+                        new Argument("term", ParserRegistry.getParser(String.class), false)
                 ),
                 Map.of(
                         "case-insensitive", new Argument("case-insensitive", new BooleanParser(), true, List.of(), () -> false)
@@ -231,7 +236,7 @@ public class Scenarios {
         Command weekday = new Command(
                 "weekday",
                 List.of(
-                        new Argument("date", new LocalDateParser())
+                        new Argument("date", ParserRegistry.getParser(LocalDate.class))
                 ),
                 Map.of()
         );
