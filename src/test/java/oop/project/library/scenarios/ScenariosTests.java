@@ -13,6 +13,21 @@ class ScenariosTests {
 
     @ParameterizedTest
     @MethodSource
+    public void testCommand(String name, String command, Map<String, Object> expected) {
+        test(command, expected);
+    }
+
+    private static Stream<Arguments> testCommand() {
+        return Stream.of(
+                Arguments.of("Test command", """
+                        test 1 2 3 --flag true
+                        """, Map.of("one", 1 , "two" , 2 , "three" , 3 , "flag", true)
+                )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
     public void testLex(String name, String command, Map<String, Object> expected) {
         test(command, expected);
     }
